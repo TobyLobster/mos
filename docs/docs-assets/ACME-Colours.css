@@ -1,0 +1,33 @@
+/* The following correspond to the Inweb colours !definition, ..., !comment: */
+
+span.ACME-definition-syntax  { color: #444444; }
+span.ACME-function-syntax    { color: #C00000; }
+span.ACME-identifier-syntax  { color: #4040ff; }
+span.ACME-element-syntax     { color: #7f407f; }
+span.ACME-reserved-syntax    { color: #600000; }
+span.ACME-string-syntax      { color: #408040; }
+span.ACME-character-syntax   { color: #204020; }
+span.ACME-constant-syntax    { color: #804020; }
+span.ACME-plain-syntax       { color: #000000; }
+span.ACME-extract-syntax     { color: #444444; }
+span.ACME-comment-syntax     { color: #404040; font-style:italic; }
+
+/* This is used for the "define" or "enum" keyword on Inweb-defined constants: */
+
+span.ACME-definition-keyword { color:#801010; font-weight:bold; }
+
+/* These are for the angle-bracketed paragraph names: */
+
+span.ACME-named-paragraph, span.ACME-named-paragraph-defn { color: #000000; font-weight: bold; }
+span.ACME-named-paragraph-number { color: #000000; font-size: 80%; }
+
+/* This is the box into which multi-line stretches of code are put: */
+
+pre.ACME-displayed-code {
+	background: #f8f8f8;
+	border-width: 1px;
+	border-style: solid solid solid solid;
+	border-color: #cccccc;
+}
+
+

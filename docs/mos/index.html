@@ -1,0 +1,170 @@
+<html>
+	<head>
+		<title>BBC Microcomputer OS 1.20</title>
+<link href="../docs-assets/Breadcrumbs.css" rel="stylesheet" rev="stylesheet" type="text/css">
+<link href="../docs-assets/Breadcrumbs.css" rel="stylesheet" rev="stylesheet" type="text/css">
+<link href="../docs-assets/Carousel.css" rel="stylesheet" rev="stylesheet" type="text/css">
+<link href="../docs-assets/Navigation.css" rel="stylesheet" rev="stylesheet" type="text/css">
+<link href="../docs-assets/Base.css" rel="stylesheet" rev="stylesheet" type="text/css">
+		<meta name="viewport" content="width=device-width initial-scale=1">
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="Content-Language" content="en-gb">
+
+<link href="../docs-assets/Contents.css" rel="stylesheet" rev="stylesheet" type="text/css">
+<link href="../docs-assets/Progress.css" rel="stylesheet" rev="stylesheet" type="text/css">
+<link href="../docs-assets/Fonts.css" rel="stylesheet" rev="stylesheet" type="text/css">
+		
+	</head>
+	<body class="commentary-font">
+		<nav role="navigation">
+		<p>BBC Computer 32K</p>
+<h1>*CAT</h1>
+<ul><li><a href="../index.html">&#x21A9; home</a></li><li><span class="unlink">contents</span></li>
+<li><a href="S-s1.html">introduction</a></li>
+<li><a href="S-s2.html">constants</a></li>
+<li><a href="S-s3.html">memory-mapped i/o</a></li>
+<li><a href="S-s4.html"><b>$C000</b>: chapter 4</a></li>
+<li><a href="S-s5.html"><b>$C4C0</b>: chapter 5</a></li>
+<li><a href="S-s6.html"><b>$CB1D</b>: chapter 6</a></li>
+<li><a href="S-s7.html"><b>$CCF8</b>: chapter 7</a></li>
+<li><a href="S-s8.html"><b>$D060</b>: chapter 8</a></li>
+<li><a href="S-s9.html"><b>$D7C2</b>: chapter 9</a></li>
+<li><a href="S-s10.html"><b>$D940</b>: chapter 10</a></li>
+<li><a href="S-s11.html"><b>$DC1C</b>: chapter 11</a></li>
+<li><a href="S-s12.html"><b>$DEC5</b>: chapter 12</a></li>
+<li><a href="S-s13.html"><b>$E0A4</b>: chapter 13</a></li>
+<li><a href="S-s14.html"><b>$E20E</b>: chapter 14</a></li>
+<li><a href="S-s15.html"><b>$E5B3</b>: chapter 15</a></li>
+<li><a href="S-s16.html"><b>$EB03</b>: chapter 16</a></li>
+<li><a href="S-s17.html"><b>$EEDA</b>: chapter 17</a></li>
+<li><a href="S-s18.html"><b>$F135</b>: chapter 18</a></li>
+<li><a href="S-s19.html"><b>$F588</b>: chapter 19</a></li>
+<li><a href="S-s20.html"><b>$F8A9</b>: chapter 20</a></li>
+<li><a href="S-s21.html"><b>$FAE8</b>: chapter 21</a></li>
+<li><a href="S-s22.html"><b>$FC00</b>: chapter 22</a></li>
+<li><a href="S-s23.html"><b>$FF00</b>: chapter 23</a></li>
+<li><a href="S-s24.html"><b>$FFA7</b>: chapter 24</a></li>
+<li><a href="S-s25.html">appendix</a></li>
+<li><a href="S-s26.html">index</a></li>
+
+</ul>
+		</nav>
+		<main role="main">
+		<ul class="crumbs"><li><a href="../index.html">Home</a></li><li><b>BBC Microcomputer OS 1.20</b></li></ul>
+		<p class="purpose">The contents of v1.20 of the BBC Microcomputer OS ROM.</p>
+		<hr>
+		<div class="contentspage">
+			<ul class="sectionlist">
+				<li>
+					<p><a href="S-s1.html"><spon class="sectiontitle">Chapter 1: Introduction</span></a> -
+					<span class="purpose">About the BBC Microcomputer, its memory map, and the scope of its operating system</span></p>
+				</li>
+				<li>
+					<p><a href="S-s2.html"><spon class="sectiontitle">Chapter 2: Memory Layout and Constants</span></a> -
+					<span class="purpose">The memory layout and constants</span></p>
+				</li>
+				<li>
+					<p><a href="S-s3.html"><spon class="sectiontitle">Chapter 3: Memory Mapped IO</span></a> -
+					<span class="purpose">Register locations for memory-mapped hardware</span></p>
+				</li>
+				<li>
+					<p><a href="S-s4.html"><spon class="sectiontitle">Chapter 4: Character definitions and VDU tables</span></a> -
+					<span class="purpose">Character definitions; Boot message; VDU tables - 1216 bytes (7.4%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s5.html"><spon class="sectiontitle">Chapter 5: VDU and OSWORD routines</span></a> -
+					<span class="purpose">VDU 0-6, 8-31, 127. OSWORD 9, 11, 12; VDUCHR entry point; Swap cursor variables; Check text or graphics cursor active; Hardware scrolling; Scroll in paged mode - 1629 bytes (9.9%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s6.html"><spon class="sectiontitle">Chapter 6: Changing MODEs</span></a> -
+					<span class="purpose">MODE change code; OSWORD 10; Clear screen - 475 bytes (2.8%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s7.html"><spon class="sectiontitle">Chapter 7: Graphics cursor and soft character definitions</span></a> -
+					<span class="purpose">OSBYTE 20; Cursor editing mode; Software scroll up/downwards; Exchange four VDU variables; Plot character at graphics cursor; Graphics cursor handling; MODE 7 character conversion; Setup soft character definitions - 872 bytes (5.3%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s8.html"><spon class="sectiontitle">Chapter 8: PLOT</span></a> -
+					<span class="purpose">OSBYTE 134; OSWORD 13; PLOT routine; Checking graphics cursor bounds; Coordinate conversion; PLOT line; Move graphics cursor; Copy VDU variables; PLOT lateral fill; PLOT fill triangle - 1890 bytes (11.5%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s9.html"><spon class="sectiontitle">Chapter 9: Cursor editing mode</span></a> -
+					<span class="purpose">OSBYTE 132, 133, 135; Cursor editing mode routines - 382 bytes (2.3%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s10.html"><spon class="sectiontitle">Chapter 10: Resets</span></a> -
+					<span class="purpose">OSBYTE 142; Default vector table; Default MOS variables table; Reset entry point - 732 bytes (4.4%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s11.html"><spon class="sectiontitle">Chapter 11: Interrupt processing</span></a> -
+					<span class="purpose">OSBYTE 17; IRQ entry point; BRK handler; IRQ1, IRQ2 handlers; Display string - 681 bytes (4.1%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s12.html"><spon class="sectiontitle">Chapter 12: Command Line Interpreter (star commands)</span></a> -
+					<span class="purpose">OSBYTE 127, 139; OSRDCH entry point; OSCLI Handler; Table of star commands; *BASIC; Reading hex values from strings; Copyright string (backwards) - 479 bytes (2.9%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s13.html"><spon class="sectiontitle">Chapter 13: Writing characters; printer; buffers</span></a> -
+					<span class="purpose">OSBYTE 123, 156; OSWRCH entry point; Econet / User printer routines; Flush buffers; Count or purge buffer (CNPV); Append to buffer - 362 bytes (2.2%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s14.html"><spon class="sectiontitle">Chapter 14: Star commands</span></a> -
+					<span class="purpose">*LOAD; *SAVE; *SPOOL; *KEY; *FX; OSBYTE 119, 138, 145, 152, 153; Clear OSFILE address; Tables of buffer addresses; EVENT entry point; Remove from buffer (REMV); Insert into buffer (INSV) - 933 bytes (5.6%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s15.html"><spon class="sectiontitle">Chapter 15: OSBYTE and OSWORD</span></a> -
+					<span class="purpose">VDU 7; OSBYTE 0-14, 16, 18, 19, 117, 118, 124-126, 128-130, 136, 137, 144, 147, 149, 151, 154, 155, 160, 247; OSWORD 0-8; OSBYTE entry point; OSWORD entry point; *LINE; *CODE; Serial baud rate / sound buffer table; GSINIT; GSREAD; Keyboard handling routines - 1360 bytes (8.3%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s16.html"><spon class="sectiontitle">Chapter 16: Sound and Speech</span></a> -
+					<span class="purpose">OSBYTE 158, 159; Sound and speech interrupt processing; ROM/PHROM read byte - 983 bytes (5.9%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s17.html"><spon class="sectiontitle">Chapter 17: Keyboard processing</span></a> -
+					<span class="purpose">OSBYTE 15, 21, 120-122, 131; Keyboard processing, translation table, scanning code; KEYV entry point; Speech table; *HELP - 603 bytes (3.6%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s18.html"><spon class="sectiontitle">Chapter 18: Tape and ROM Filing systems</span></a> -
+					<span class="purpose">OSBYTE 140, 141, 143; OSARGS entry; OSFILE entry; OSFIND entry; OSBGET entry; OSBPUT entry; File system vector table; FSC entry point; Setup tape options; Load and save file; Copy filename; *RUN; *CAT; *OPT; Search for block; Open a file; Save a block to tape - 1107 bytes (6.7%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s19.html"><spon class="sectiontitle">Chapter 19: Low Level Tape Operations</span></a> -
+					<span class="purpose">Update ACIA; Check EOF; Search for file; Spool or Exec file; Load and save block; Load block header; Load and save byte; Update CRC - 801 bytes (4.8%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s20.html"><spon class="sectiontitle">Chapter 20: Filing System Messaging and Error Reporting</span></a> -
+					<span class="purpose">Print progress; Prompt to record on tape; Print four byte hex; Check for ESCAPE during tape operations; Load block from tape; Print following message; Data? File? Block? error messages - 575 bytes (3.5%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s21.html"><spon class="sectiontitle">Chapter 21: More Low Level Tape Operations</span></a> -
+					<span class="purpose">Setup, Claim, and Reset ACIA; Cancel tape operation; Activate / deactivate RTS; Zero checksum; Copy filename; Motor on/off; Check file is open; Send data to second processor; Setup for cassette write - 280 bytes (1.7%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s22.html"><spon class="sectiontitle">Chapter 22: Credits</span></a> -
+					<span class="purpose">Credits string - 768 bytes (4.6%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s23.html"><spon class="sectiontitle">Chapter 23: Extended vectors</span></a> -
+					<span class="purpose">Extended vector entry points table; Extended vector handler - 167 bytes (1%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s24.html"><spon class="sectiontitle">Chapter 24: OS entry points; Tube; FRED; JIM; SHEILA</span></a> -
+					<span class="purpose">OSBYTE 146, 148, 150, 157; OS Entry points and 6502 Vectors (NMI, Reset, IRQ); Chapter 25: Appendix; Circuit diagrams in vector format; Chapter 26: Index; Index of MOS features as they are seen by user programs;  - 89 bytes (0.5%)</span></p>
+				</li>
+				<li>
+					<p><a href="S-s25.html"><spon class="sectiontitle">Chapter 25: Appendix</span></a> -
+					<span class="purpose">Circuit diagrams in vector format</span></p>
+				</li>
+				<li>
+					<p><a href="S-s26.html"><spon class="sectiontitle">Index</span></a> -
+					<span class="purpose">Index of MOS features as they are seen by user programs</span></p>
+				</li>
+			</ul>
+		</div>
+		<hr>
+		This is version 1.0.0 of the Reassembly, published on 20 August 2020.
+		Powered by <a href="https://github.com/ganelson/inweb">Inweb</a>.
+		</main>
+	</body>
+</html>
+
