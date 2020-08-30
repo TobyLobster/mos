@@ -445,7 +445,7 @@
 ; OSEVEN ($FFBF)                  - Generates an EVENT, a kind of managed interrupt
 ;                                   (See .eventEntryPoint)
 ; GSINIT ($FFC2) / GSREAD ($FFC5) - Parse a string in memory (e.g. from an OSCLI command)
-;                                   (See .gsInitEntryPoint)
+;                                   (See .gsinitEntryPoint)
 ; NVRDCH ($FFC8) / NVWRCH ($FFCB) - Non vectored versions of OSRDCH / OSWRCH
 ; OSASCI ($FFE3)                  - Write character using OSWRCH, or write CR/LF if CR found
 ;                                   (See .OSASCI)
@@ -8962,7 +8962,7 @@
 ;
 ; ***************************************************************************************
 .osword9EntryPoint
-    LDY #3                                              ; Y=3, loop counter
+    LDY #3                                              ; Y is loop counter
     LDX #0                                              ;
 -
     LDA (.oswordX),Y                                    ; get it
@@ -14303,7 +14303,7 @@
 ; Modify character in A as if the CTRL key is being pressed
 ;
 ; This is used both when the CTRL key is being pressed, and for parsing strings using
-; GSINIT / GSREAD. See .gsInitEntryPoint.
+; GSINIT / GSREAD. See .gsinitEntryPoint.
 ;
 ;     Input     Output      Notes
 ;     ASCII      CTRL
@@ -16383,7 +16383,7 @@ endUnused
     ADC #.charA - (.charNINE + 1) - 1                   ; Convert $3A-$3F to A=$41-$46 ('A' to 'F')
 
 .writeCharJumper
-    JMP .OSWRCH                                        ; print character and return
+    JMP .OSWRCH                                         ; print character and return
 
 ;[ This routine could be smaller...
 ;.printHexByte

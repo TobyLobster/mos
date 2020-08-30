@@ -473,13 +473,14 @@
 ; Others
 ;
 ; ***************************************************************************************
-; OSRDRM ($FFB9)                  - Read byte from Paged ROM (new in MOS 1.20) (See .osrdrmEntryPoint)
+; OSRDRM ($FFB9)                  - Read byte from Paged ROM (new in MOS 1.20)
+;                                   (See .osrdrmEntryPoint)
 ; VDUCHR ($FFBC)                  - A cut down form of OSWRCH just for writing to the screen
 ;                                   (See .vduChrEntryPoint)
 ; OSEVEN ($FFBF)                  - Generates an EVENT, a kind of managed interrupt
 ;                                   (See .eventEntryPoint)
 ; GSINIT ($FFC2) / GSREAD ($FFC5) - Parse a string in memory (e.g. from an OSCLI command)
-;                                   (See .gsInitEntryPoint)
+;                                   (See .gsinitEntryPoint)
 ; NVRDCH ($FFC8) / NVWRCH ($FFCB) - Non vectored versions of OSRDCH / OSWRCH
 ; OSASCI ($FFE3)                  - Write character using OSWRCH, or write CR/LF if CR found
 ;                                   (See .OSASCI)
@@ -1055,7 +1056,7 @@
     ; two keys pressed       second key  number         first key number
     ; second key released    $00                        first key number
 
-.keyToIgnoreWhenScanningWithOSBYTE121or122  = $EE       ; [TODO Explain]
+.keyToIgnoreWhenScanningWithOSBYTE121or122  = $EE       ; See .scanKeyboard
 
 .osbyteA                                    = $EF       ; }
 .oswordA                                    = $EF       ; } stores register values when
@@ -3667,7 +3668,7 @@
 ; ***************************************************************************************
 .vduBaseAddress
 .initialiseScreenOnReset
-    JMP .initialiseVDUVariablesAndSetMODE
+    JMP .initialiseVDUVariablesAndSetMODE               ;
 
 ; ***************************************************************************************
 ;
@@ -4983,7 +4984,7 @@
 ;
 ; ***************************************************************************************
 .osword9EntryPoint
-    LDY #3                                              ; Y=3, loop counter
+    LDY #3                                              ; Y is loop counter
 -
     LDA (.oswordX),Y                                    ; get it
     STA .vduWorkspaceA,Y                                ; store it
@@ -9015,10 +9016,10 @@
 ; ***************************************************************************************
 .fillRow
     STX .vduTempStoreDE                                 ;
-    LDA .vduGraphicsWindowPixelsLeftLow,X               ; }
-    CMP .vduGraphicsWindowPixelsLeftLow,Y               ; }
-    LDA .vduGraphicsWindowPixelsLeftHigh,X              ; } if (leftmost <= rightmost) then branch
-    SBC .vduGraphicsWindowPixelsLeftHigh,Y              ; }
+    LDA .vduVariablesStart,X                            ; }
+    CMP .vduVariablesStart,Y                            ; }
+    LDA .vduVariablesStart + 1,X                        ; } if (leftmost <= rightmost) then branch
+    SBC .vduVariablesStart + 1,Y                        ; }
     BMI +                                               ; }
 
     TYA                                                 ; }
@@ -9027,9 +9028,9 @@
     STX .vduTempStoreDE                                 ; }
 +
     STY .vduTempStoreDF                                 ; .vduTempStoreDF=offset to leftmost coordinate
-    LDA .vduGraphicsWindowPixelsLeftLow,Y               ;
+    LDA .vduVariablesStart,Y                            ;
     PHA                                                 ;
-    LDA .vduGraphicsWindowPixelsLeftHigh,Y              ;
+    LDA .vduVariablesStart + 1,Y                        ;
     PHA                                                 ; push graphics window left edge coordinate
     LDX .vduTempStoreDF                                    ; check leftmost coordinate
     JSR .checkPointXIsWithinGraphicsWindow              ; check window bounds
@@ -9061,11 +9062,11 @@
 +
     LDY .vduTempStoreDF                                 ; Y = offset to leftmost pixel coordinate
     SEC                                                 ;
-    LDA .vduGraphicsWindowPixelsLeftLow,Y               ; }
-    SBC .vduGraphicsWindowPixelsLeftLow,X               ; }
+    LDA .vduVariablesStart,Y                            ; }
+    SBC .vduVariablesStart,X                            ; }
     STA .vduTempStoreDC                                 ; } tempStoreDC/DD = width of row to fill (rightmost - leftmost)
-    LDA .vduGraphicsWindowPixelsLeftHigh,Y              ; }
-    SBC .vduGraphicsWindowPixelsLeftHigh,X              ; }
+    LDA .vduVariablesStart + 1,Y                        ; }
+    SBC .vduVariablesStart + 1,X                        ; }
     STA .vduTempStoreDD                                 ; }
 
     ; First calculate leftmost byte to write
@@ -9086,9 +9087,9 @@
     ; we get here when we are done drawing all the pixels
     LDX .vduTempStoreDF                                 ; restore X = offset to leftmost coordinate
     PLA                                                 ; pull A
-    STA .vduGraphicsWindowPixelsLeftHigh,X              ; restore left edge of graphics window
+    STA .vduVariablesStart + 1,X                        ; restore left edge of graphics window
     PLA                                                 ; pull A
-    STA .vduGraphicsWindowPixelsLeftLow,X               ; restore left edge of graphics window
+    STA .vduVariablesStart,X                            ; restore left edge of graphics window
     RTS                                                 ;
 
 ; ***************************************************************************************
@@ -12336,6 +12337,7 @@
 ; ***************************************************************************************
 .starLoad
     LDA #$FF                                            ; signal that load is being performed
+    ; fall through...
 
 ; ***************************************************************************************
 ;
@@ -15105,7 +15107,7 @@
 +
     ROR .stringInputOptions                             ; bit 7 = double quote character found
                                                         ; bit 6 = space is not a terminator
-    CMP #13                                             ; set Z flag if CR found
+    CMP #.charRETURN                                    ; set Z flag if CR found
     RTS                                                 ;
 
 
@@ -15269,7 +15271,7 @@
 ; Modify character in A as if the CTRL key is being pressed
 ;
 ; This is used both when the CTRL key is being pressed, and for parsing strings using
-; GSINIT / GSREAD. See .gsInitEntryPoint.
+; GSINIT / GSREAD. See .gsinitEntryPoint.
 ;
 ;     Input     Output      Notes
 ;     ASCII      CTRL
@@ -17080,8 +17082,8 @@
 ;
 ; The tape (and ROM) block format
 ;
-; The cassette filing system uses a variant of the 1976 Kansas City standard
-; (see https://en.wikipedia.org/wiki/Kansas_City_standard)
+; The cassette filing system uses a variant of the 1976 Kansas City standard.
+; See https://en.wikipedia.org/wiki/Kansas_City_standard
 ;
 ; Tape signals are a sequence of binary tones, either 2400Hz (representing a set bit) or
 ; 1200Hz (representing a clear bit). These tones can be recorded and read at a speed of
@@ -19340,7 +19342,7 @@
     ADC #.charA - (.charNINE + 1) - 1                   ; Convert $3A-$3F to A=$41-$46 ('A' to 'F')
 
 .writeCharJumper
-    JMP .OSWRCH                                        ; print character and return
+    JMP .OSWRCH                                         ; print character and return
 
 ;[ This routine could be three bytes smaller...
 ;.printHexByte
