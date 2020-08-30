@@ -13761,6 +13761,7 @@
 ;       X and Y contains either:
 ;           time limit in centi-seconds (Y=$7F max)
 ;       or Y=$FF and X=-ve INKEY value for an instant read of a specific key
+;       or Y=$FF and X=0 to read the machine type (see NAUG Section 24.4.1 Page 428)
 ;
 ; ***************************************************************************************
 .osbyte129EntryPoint
@@ -13781,6 +13782,8 @@
     TAX                                                 ; X=A
     JSR .keyJumper                                      ; then scan keyboard
     ROL                                                 ; put bit 7 into carry
+
+    ; if (carry is set) then return $FFFF else return $0000
 .setXYAndExit
     ; fall through...
 

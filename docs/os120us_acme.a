@@ -13772,6 +13772,7 @@
 ;       X and Y contains either:
 ;           time limit in centi-seconds (Y=$7F max)
 ;       or Y=$FF and X=-ve INKEY value for an instant read of a specific key
+;       or Y=$FF and X=0 to read the machine type (see NAUG Section 24.4.1 Page 428)
 ;
 ; ***************************************************************************************
 .osbyte129EntryPoint
@@ -13788,11 +13789,13 @@
 
 .readNegativeKeyNumber
     TXA                                                 ; A=X
-    BEQ .zeroTimeLimit                                  ;
+    BEQ .identifyMachineType                            ;
     EOR #$7F                                            ; convert to keyboard input
     TAX                                                 ; X=A
     JSR .keyJumper                                      ; then scan keyboard
     ROL                                                 ; put bit 7 into carry
+
+    ; if (carry is set) then return $FFFF else return $0000
 .setXYAndExit
     ; fall through...
 
@@ -13813,14 +13816,14 @@
 .osbyte130EntryPoint
     LDX #$FF                                            ; X=$FF
     LDY #$FF                                            ; Y=$FF
-    BCS .exit21a                                        ; if (carry set, depends on entry point) then branch (exit)
+    BCS +                                               ; if (carry set, depends on entry point) then branch (exit)
     INX                                                 ; X=0
     INY                                                 ; Y=0
-.exit21a
++
     RTS                                                 ;
 
 ; ***************************************************************************************
-.zeroTimeLimit
+.identifyMachineType
     LDX #$FE                                            ; Another identifer of the model:
     LDY #0                                              ; OSBYTE 129,0,255 returns X=$FE and Y=0
     RTS                                                 ;
