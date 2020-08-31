@@ -73,8 +73,10 @@ A new disk interface (WD 1770) is also introduced, which provides compatibility 
 for some games.
 </p>
 
-<p class="commentary">It identifies on boot as 'Acorn OS 64K', no longer the 'BBC Computer' and is '64K'
-regardless of the actual memory installed.
+<p class="commentary">It identifies on boot as 'Acorn OS 64K', no longer the 'BBC Computer'. Although the MOS
+always reports '64K', a sideways ROM can count the RAM and overwrite this. It seems that
+this is usually handled by SRAM Utils in DFS 2.xx ROM, where it looks for installed RAM in
+a particular set of RAM banks.
 </p>
 
 <p class="commentary">Changes from MOS 1.20 to MOS 2.00:
@@ -84,14 +86,16 @@ regardless of the actual memory installed.
 </li><li>&#9679; Identifies as "OS 2.00" via *HELP and *FX 0.
 </li><li>&#9679; Machine type is returned as $FB from INKEY(-256) or OSBYTE 129,0,255
 </li><li>&#9679; Support for shadow RAM is added:
-</li><li>(a) A MODE change (VDU 22) selects shadow RAM as needed.
+<ul class="items"><li>(a) A MODE change (VDU 22) selects shadow RAM as needed.
 </li><li>(b) OSBYTE 114 is added, to configure shadow RAM mode to be applied on the next MODE change.
 </li><li>(c) *SHADOW command added as the equivalent star command.
 </li><li>(d) OSBYTE 132/133 (read HIMEM) are extended to take shadow MODEs into account.
 </li><li>(e) Reset code ensures shadow mode is off initially.
-</li><li>&#9679; Support for sideways RAM is added:
-</li><li>(a) OSWORD 5 and 6 are extended to allow read/write of one byte of sideways RAM.
-</li><li>&#9679; TUBE initialisation is slightly different.
+</li></ul>
+<li>&#9679; Support for sideways RAM is added:
+<ul class="items"><li>(a) OSWORD 5 and 6 are extended to allow read/write of one byte of sideways RAM.
+</li></ul>
+<li>&#9679; TUBE initialisation is slightly different.
 </li><li>&#9679; When the VDU is disabled but the printer is enabled, cursor keys can be sent to the printer.
 </li><li>&#9679; Further optimised for space.
 </li></ul>
