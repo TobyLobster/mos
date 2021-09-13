@@ -608,15 +608,19 @@ function togglePopup(material_id) {
 <p class="commentary firstcommentary"><a id="SP12" class="paragraph-anchor"></a><b>&#167;12. Check for initialising JIM device. </b></p>
 
 <pre class="ACME-displayed-code all-displayed-code code-font">
-<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">CLI</span><span class="ACME-plain-syntax">                                                 </span><span class="ACME-comment-syntax">briefly allow interrupts to clear</span>
-<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">anything pending</span>
+<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">CLI</span><span class="ACME-plain-syntax">                                                 </span><span class="ACME-comment-syntax">briefly allow interrupts (JIM based</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">hardware can cause an</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">interrupt here, which will set</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">.interruptAccumulator to $7F,</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">according to the comments in the</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">original source code)</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">SEI</span><span class="ACME-plain-syntax">                                                 </span><span class="ACME-comment-syntax">then disallow again (N.B. All VIA</span>
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">IRQs are disabled)</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">BIT</span><span class="ACME-plain-syntax"> .</span><a href="S-s2.html#SP11" class="function-link"><span class="ACME-function-syntax">interruptAccumulator</span></a><span class="ACME-plain-syntax">                           </span><span class="ACME-comment-syntax">check bit 6=1 (keyboard link 2)</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">BVC</span><span class="ACME-plain-syntax"> </span><span class="ACME-identifier-syntax">+</span><span class="ACME-plain-syntax">                                               </span><span class="ACME-comment-syntax">if (keyboard link 2 clear) then</span>
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">branch over next instruction</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">JSR</span><span class="ACME-plain-syntax"> .</span><a href="S-s17.html#SP17" class="function-link"><span class="ACME-function-syntax">jimPagedEntryJumper</span></a><span class="ACME-plain-syntax">                            </span><span class="ACME-comment-syntax">This calls the JIM paged entry point</span>
-<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">(to initialise JIM based hardware)</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">(to initialise JIM based hardware.)</span>
 <span class="ACME-identifier-syntax">+</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-comment-syntax">fall through...</span>
 </pre>
@@ -630,7 +634,9 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax">       A timer interrupt for Speech</span>
 <span class="ACME-plain-syntax">       The 100Hz timer</span>
 
-<span class="ACME-plain-syntax"> Initialises the 100Hz timer to $270E = 9998 uS (close enough for most purposes to 100Hz)</span>
+<span class="ACME-plain-syntax"> Initialises the 100Hz timer to $270E = 9998 uS (two less than expected because the latch</span>
+<span class="ACME-plain-syntax"> reload costs 2uS)</span>
+
 <span class="ACME-plain-syntax"> Initialises other devices to default settings (light pen strobe, printer, user port)</span>
 </pre>
 <pre class="ACME-displayed-code all-displayed-code code-font">
@@ -678,7 +684,7 @@ function togglePopup(material_id) {
 <span class="ACME-identifier-syntax">+</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">LDA</span><span class="ACME-plain-syntax"> #</span><span class="ACME-constant-syntax">$27</span><span class="ACME-plain-syntax">                                            </span><span class="ACME-comment-syntax">set Timer 1 (high byte) to $27.</span>
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">this sets Timer 1 to $270E (=9998 uS)</span>
-<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">STA</span><span class="ACME-plain-syntax"> .</span><a href="S-s3.html#SP14" class="function-link"><span class="ACME-function-syntax">systemVIATimer1LatchHigh</span></a><span class="ACME-plain-syntax">                       </span><span class="ACME-comment-syntax">so interrupt occurs approximately</span>
+<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">STA</span><span class="ACME-plain-syntax"> .</span><a href="S-s3.html#SP14" class="function-link"><span class="ACME-function-syntax">systemVIATimer1LatchHigh</span></a><span class="ACME-plain-syntax">                       </span><span class="ACME-comment-syntax">so interrupt occurs</span>
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">every 100th of a second</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">STA</span><span class="ACME-plain-syntax"> .</span><a href="S-s3.html#SP14" class="function-link"><span class="ACME-function-syntax">systemVIATimer1CounterHigh</span></a><span class="ACME-plain-syntax">                     </span><span class="ACME-comment-syntax">set counter (high byte) which</span>
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">actually starts the timer</span>
@@ -949,6 +955,7 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">(with carry set)</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">JSR</span><span class="ACME-plain-syntax"> .</span><a href="S-s15.html#SP56" class="function-link"><span class="ACME-function-syntax">osbyte118EntryPoint</span></a><span class="ACME-plain-syntax">                            </span><span class="ACME-comment-syntax">set up keyboard LEDs to reflect</span>
 <span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">current keyboard status</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">also tests for SHIFT pressed</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-comment-syntax">fall through...</span>
 </pre>
 <p class="commentary firstcommentary"><a id="SP22" class="paragraph-anchor"></a><b>&#167;22. Get !BOOT options, and ask ROMs to handle it. </b></p>
@@ -996,8 +1003,8 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">DEC</span><span class="ACME-plain-syntax"> .</span><a href="S-s2.html#SP14" class="function-link"><span class="ACME-function-syntax">startupMessageSuppressionAndBootOptions</span></a><span class="ACME-plain-syntax">        </span><span class="ACME-comment-syntax">decrement boot options</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">JSR</span><span class="ACME-plain-syntax"> .</span><a href="S-s24.html#SP6" class="function-link"><span class="ACME-function-syntax">OSCLI</span></a><span class="ACME-plain-syntax">                                          </span><span class="ACME-comment-syntax">and execute */!BOOT</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">INC</span><span class="ACME-plain-syntax"> .</span><a href="S-s2.html#SP14" class="function-link"><span class="ACME-function-syntax">startupMessageSuppressionAndBootOptions</span></a><span class="ACME-plain-syntax">        </span><span class="ACME-comment-syntax">restore boot options</span>
-<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">BNE</span><span class="ACME-plain-syntax"> .</span><a href="S-s10.html#SP26" class="function-link"><span class="ACME-function-syntax">checkForFindingLanguageROM</span></a><span class="ACME-plain-syntax">                     </span><span class="ACME-comment-syntax">if (not zero) then branch</span>
-<span class="ACME-plain-syntax">    </span><span class="ACME-comment-syntax">fall through...</span>
+<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">BNE</span><span class="ACME-plain-syntax"> .</span><a href="S-s10.html#SP26" class="function-link"><span class="ACME-function-syntax">checkForFindingLanguageROM</span></a><span class="ACME-plain-syntax">                     </span><span class="ACME-comment-syntax">ALWAYS branch, don't reset filing</span>
+<span class="ACME-plain-syntax">                                                        </span><span class="ACME-comment-syntax">system</span>
 </pre>
 <p class="commentary firstcommentary"><a id="SP25" class="paragraph-anchor"></a><b>&#167;25. Select TAPE filing system. </b></p>
 

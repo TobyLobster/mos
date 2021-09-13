@@ -66,7 +66,7 @@ function togglePopup(material_id) {
     <ul class="crumbs"><li><a href="../index.html">Home</a></li><li><a href="index.html">MOS 1.20</a></li><li><b>Chapter 24: OS entry points; Tube; FRED; JIM; SHEILA</b></li></ul></div>
 <p class="purpose">OSBYTE 146, 148, 150, 157; OS Entry points and 6502 Vectors (NMI, Reset, IRQ); Chapter 25: Appendix; Circuit diagrams in vector format; Chapter 26: Index; Index of MOS features as they are seen by user programs;  - 89 bytes (0.5%)</p>
 
-<ul class="toc"><li><a href="S-s24.html#SP1">&#167;1. OSBYTE 157 - Fast Tube BPUT</a></li><li><a href="S-s24.html#SP2">&#167;2. OSBYTE 146 - Read a byte from FRED</a></li><li><a href="S-s24.html#SP3">&#167;3. OSBYTE 148 - Read a byte from JIM</a></li><li><a href="S-s24.html#SP4">&#167;4. OSBYTE 150 - Read a byte from SHEILA</a></li><li><a href="S-s24.html#SP5">&#167;5. Unused default vector table pointer</a></li><li><a href="S-s24.html#SP6">&#167;6. Operating System function calls</a></li><li><a href="S-s24.html#SP7">&#167;7. 6502 Vectors</a></li></ul><hr class="tocbar">
+<ul class="toc"><li><a href="S-s24.html#SP1">&#167;1. OSBYTE 157 - Fast Tube BPUT</a></li><li><a href="S-s24.html#SP2">&#167;2. OSBYTE 146 - Read a byte from FRED</a></li><li><a href="S-s24.html#SP3">&#167;3. OSBYTE 148 - Read a byte from JIM</a></li><li><a href="S-s24.html#SP4">&#167;4. OSBYTE 150 - Read a byte from SHEILA</a></li><li><a href="S-s24.html#SP5">&#167;5. Default vector table pointer</a></li><li><a href="S-s24.html#SP6">&#167;6. Operating System function calls</a></li><li><a href="S-s24.html#SP7">&#167;7. 6502 Vectors</a></li></ul><hr class="tocbar">
 
 <p class="commentary firstcommentary"><a id="SP1" class="paragraph-anchor"></a><b>&#167;1. OSBYTE 157 - Fast Tube BPUT. </b></p>
 
@@ -99,11 +99,14 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">LDY</span><span class="ACME-plain-syntax"> .</span><a href="S-s3.html#SP4" class="function-link"><span class="ACME-function-syntax">sheilaPage</span></a><span class="ACME-plain-syntax">,</span><span class="ACME-reserved-syntax">X</span><span class="ACME-plain-syntax">                                   </span><span class="ACME-comment-syntax">read a byte from SHEILA area</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">RTS</span><span class="ACME-plain-syntax">                                                 </span>
 </pre>
-<p class="commentary firstcommentary"><a id="SP5" class="paragraph-anchor"></a><b>&#167;5. Unused default vector table pointer. </b></p>
+<p class="commentary firstcommentary"><a id="SP5" class="paragraph-anchor"></a><b>&#167;5. Default vector table pointer. </b></p>
 
 <pre class="ACME-undisplayed-code all-displayed-code code-font">
-<span class="ACME-plain-syntax"> This may have been intended for user programs to be able to read the default handler</span>
-<span class="ACME-plain-syntax"> addresses, but is not documented, and is not used by the ROM. New in MOS 1.20.</span>
+<span class="ACME-plain-syntax"> User programs can read these locations to find the default handler addresses.</span>
+<span class="ACME-plain-syntax"> It is not well documented (it's not in the NAUG), but it does appear in the Electron</span>
+<span class="ACME-plain-syntax"> Advanced User Guide section 6.11. It is not used by this ROM. New in MOS 1.20.</span>
+
+<span class="ACME-plain-syntax"> The original source code has the cryptic comment "security copy of indirection data"</span>
 </pre>
 <pre class="ACME-displayed-code all-displayed-code code-font">
 <span class="ACME-plain-syntax">    </span><span class="ACME-element-syntax">!byte</span><span class="ACME-plain-syntax"> .</span><a href="S-s10.html#SP1" class="function-link"><span class="ACME-function-syntax">defaultVectorTableEnd</span></a><span class="ACME-plain-syntax"> </span><span class="ACME-identifier-syntax">-</span><span class="ACME-plain-syntax"> .</span><a href="S-s10.html#SP1" class="function-link"><span class="ACME-function-syntax">defaultVectorTable</span></a><span class="ACME-plain-syntax">  </span><span class="ACME-comment-syntax">length of table         [unused]</span>

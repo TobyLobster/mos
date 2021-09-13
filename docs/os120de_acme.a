@@ -17204,7 +17204,7 @@
     DEX                                                 ; }
     BNE -                                               ; }
 
-    STX .fsReadProgressState                            ; progress flag = 0
+    STX .fsReadProgressState                            ; progress = 0
     LDX #.romServiceCallVectorsClaimed                  ; set X to make a Paged ROM service call 'Vectors Claimed'
                                                         ; used after a new filing system overwrites the current set of vectors.
     ; fall through...
@@ -18531,7 +18531,7 @@
     JSR .resetACIA                                      ; reset ACIA
     LDY #0                                              ; Y=0
 .storeTapeProgress
-    STY .fsReadProgressState                            ; progress flag
+    STY .fsReadProgressState                            ; progress state
 .exit31
     RTS                                                 ;
 
@@ -18750,7 +18750,7 @@
 -
     JSR .checkForEscapeDuringCassetteOperation          ; confirm ESC not set and tape filing system not executing
     LDA #3                                              ; A=3
-    CMP .fsReadProgressState                            ; progress flag
+    CMP .fsReadProgressState                            ; progress state
     BNE -                                               ; back until .fsReadProgressState=3
 
 .startOfBlock
@@ -18947,7 +18947,7 @@
     BEQ +                                               ; if (block length is zero) then branch
     LDX #4                                              ; X=4 (block length not zero)
 +
-    STX .fsReadProgressState                            ; save progress flag
+    STX .fsReadProgressState                            ; save progress state
     RTS                                                 ;
 
 ; ***************************************************************************************
@@ -20070,6 +20070,8 @@
 ;                       Management of all aspects of company network product strategy,
 ;                       product definition, sales forecasting, marketing materials and
 ;                       marketing events.
+;                       Perhaps involved with writing the CFS
+;                       https://stardot.org.uk/forums/viewtopic.php?p=313036#p313036
 ;                       https://www.linkedin.com/in/laurencehardwick/?originalSubdomain=uk
 ;
 ;   Peter Robinson      Video processor custom design with Jeremy Dion;
@@ -20088,7 +20090,9 @@
 ;                       number of companies.
 ;                       https://en.wikipedia.org/wiki/Allen_Boothroyd
 ;
-;   Paul Bond           Led a team of around "30 software developers" that wrote the MOS.
+;   Paul Bond           A contractor from "Top Express", who led a team of around
+;                       "30 software developers" that wrote the MOS 0.1.
+;                       Jon Thackray took over the MOS for 1.0 and later.
 ;                       Also led the software team for the Acorn Communicator.
 ;                       https://stardot.org.uk/forums/viewtopic.php?f=3&t=15786&p=216537&hilit=Paul+Bond#p216537
 ;                       https://sounds.bl.uk/Oral-history/Science/021M-C1379X0078XX-0003V0
@@ -20099,8 +20103,8 @@
 ;                       for the BBC Microcomputer and for server operating systems.
 ;                       https://www.linkedin.com/in/cripps/?originalSubdomain=ca
 ;
-;   Kim Spence-Jones    A consultant for Acorn, worked on the cassette interface software
-;                       with Paul Bond; Formed SJ Research which made Econet peripherals.
+;   Kim Spence-Jones    A consultant for Acorn, worked on the cassette interface hardware;
+;                       worked with Paul Bond; Formed SJ Research which made Econet peripherals.
 ;                       https://youtu.be/GKHEsp8MYTM?t=1108
 ;                       https://stardot.org.uk/forums/viewtopic.php?p=6542#p6542
 ;                       http://www.spencejones.com/Kim_CV_2012.pdf
@@ -20121,19 +20125,24 @@
 ;                       Founded Tadpole technology
 ;                       https://youtu.be/GKHEsp8MYTM?t=1162
 ;
-;   Andrew Gordon       "Andrew Gordon I think was responsible for the ECONET component"
-;                       https://stardot.org.uk/forums/viewtopic.php?f=3&t=1178&p=6326
+;   Andrew Gordon       Worked on the Teletext adapter and contributed to OS features, notably
+;                       the sideways-ROM call interface.
 ;
 ;   Joe Dunn            Engineering Project Management (1980-1988)
-;                       Worked on Econet.
+;                       Worked on Econet. Perhaps worked on the cassette filing system.
 ;                       https://www.linkedin.com/in/joeddunn/
+;                       https://stardot.org.uk/forums/viewtopic.php?p=310032#p310032
 ;
 ;   Arthur Norman       Norcroft C Compiler; Lisp on the BBC Micro; Functional programming;
 ;                       Fellow of Trinity College, Cambridge; Former Director of Studies for
 ;                       Computer Science at Trinity College, Cambridge
+;                       Wrote mathematical routines for BASIC
 ;                       https://en.wikipedia.org/wiki/Arthur_Norman_(computer_scientist)
 ;
-;   Jon Thackray        Co-wrote Acheton (with David Seal and Jonathan Partington)
+;   Jon Thackray        Took over from Paul Bond as leading the MOS development for 1.0 and 1.2.
+;                       Lead the Electron MOS.
+;                       Wrote MASM for the 6502 second processor, and the ARM version.
+;                       Co-wrote Acheton (with David Seal and Jonathan Partington)
 ;                       Wrote early test programs for the ARM
 ;
 ;   Ram Banerjee        (Ramanuj Banerjee)
@@ -20145,14 +20154,35 @@
 ;                       https://dylanharris.org/blog/1981/b1.shtml
 ;                       https://www.linkedin.com/in/devongarde/?originalSubdomain=lu
 ;
-;   John Cox            As a school pupil, as a summer job, wrote tools that helped design the
-;                       Electron ULA; Author of Computer Concepts Snake.
+;   John Cox            In a gap year wrote tools that helped design the Electron ULA;
+;                       Helped to port the System 3 DFS to the BBC Micro.
+;                       Author of Computer Concepts Snake.
 ;                       http://bbcmicro.co.uk/game.php?id=682
 ;                       https://stardot.org.uk/forums/viewtopic.php?f=3&t=13806&p=181329&hilit=John+Cox#p181329
 ;
-;   Brian Jones         Wrote Advanced Graphics with the Acorn Electron;
+;   Brian Jones         Helped to build prototypes of the Electron. Later worked for SJ Research.
+;                       Wrote Advanced Graphics with the Acorn Electron;
 ;                             Advanced Graphics with the BBC Model B Microcomputer
-;                       https://link.springer.com/book/10.1007/978-1-349-07340-5
+;                       https://www.cl.cam.ac.uk/research/dtg/www/people/bdj23/
+;
+;   Graham Tebby        Wrote much of the graphics routines.
+;                       http://abug.org.uk/index.php/2020/09/05/jon-thackray/
+;                       Possibly https://www.linkedin.com/in/graham-tebby-93a7208/?originalSubdomain=uk
+;                       But not really much detail.
+;
+;   Peter Miller        Wrote much of the sound code. Later ran his own company Micro Robotics Ltd
+;                       initially doing BBC add-ons and gradually developing its own range of
+;                       control-oriented micros.
+;
+;   Bob Austin          Lead the motherboard design team, responsible for the PCB layout.
+;                       ("Bob's board" is printed on the motherboard, underneath the
+;                       6502 chip.)
+;                       https://stardot.org.uk/forums/viewtopic.php?p=20687#p20687
+;
+;   Glyn Phillips       Developed the FIT and PET test tools for use in manufacturing/repair of the
+;                       BBC micro.  Later (with Mel Pullen, also ex-Acorn) founded SoftMachinery Ltd
+;                       which (among other things) produced Prestel terminal software to run on the
+;                       BBC.  Also ran the "Gnome at Home" BBS.
 ;
 ;   From the BBC
 ;   ------------
@@ -20168,10 +20198,13 @@
 ;                       https://clp.bbcrewind.co.uk/4412a4e642f6bc04b47f09ec7953a6bf
 ;                       https://clp.bbcrewind.co.uk/aef4287b5161099b147d9c4a75f9c1d3
 ;
-;   John Coll           Primary author of the User Guide ('for which he received £150,000');
+;   John Coll           School teacher who then served on the committee that was selecting the
+;                       manufacturer to produce the BBC Micro.
+;                       Primary author of the User Guide ('for which he received £150,000');
 ;                       wrote initial functional description of the BBC Micro; wrote for
 ;                       Personal Computer World; Worked on the Micro Live programme.
-;                       Ended up working for Acorn as an employee.
+;                       Ended up working for Acorn as an employee, later moving to CET
+;                       (Council for Educational Technology).
 ;                       https://en.wikipedia.org/wiki/John_Coll
 ;                       https://clp.bbcrewind.co.uk/4412a4e642f6bc04b47f09ec7953a6bf
 ;
@@ -20203,10 +20236,10 @@
 ;   6502 designers      Chuck Peddle, Rod Orgill, and Wil Mathys
 ;                       https://en.wikipedia.org/wiki/MOS_Technology_6502#Design_notes
 ;
-;   Hitachi             supplied DRAM chips
+;   Hitachi             Supplied DRAM chips
 ;                       https://youtu.be/GKHEsp8MYTM?t=1816
 ;
-;   Ferranti            made the custom ULAs for Acorn
+;   Ferranti            Made the custom ULAs for Acorn
 ;
 ;   ICL and Cleartone   Manufacturers
 ;                       According to Acorn User issue 1 - July/Aug 1982: "Acorn currently
@@ -20223,24 +20256,15 @@
 ;   Computer Laboratory Academic department within the University of Cambridge
 ;                       https://www.cl.cam.ac.uk
 ;
-;   Wilberforce Road    A road in Cambridge. The maths building wasn't there back in the day,
-;                       so possibly listed for its sports facilities?
+;   Wilberforce Road    A road in Cambridge where some of the developers lived in the early days.
+;                       https://youtu.be/Rphep1dS2NU?t=2191
 ;                       https://map.cam.ac.uk/Wilberforce+Road#52.209604,0.100091,17
 ;
 ;   Unknown
 ;   -------
-;   Bob Austin          Speculatively could have been part of the motherboard design team
-;                       since "Bob's board" is printed on the motherboard, underneath the
-;                       6502 chip.
-;                       https://stardot.org.uk/forums/viewtopic.php?p=20687#p20687
 ;   Paul Farrell
 ;   Jon Gibbons
-;   Lawrence Hardwick
-;   Peter Miller
-;   Glyn Phillips
 ;   Mike Prees
-;   Graham Tebby        Possibly https://www.linkedin.com/in/graham-tebby-93a7208/?originalSubdomain=uk
-;                       But not really much detail.
 ;   Adrian Warner
 ;   Alan Wright
 

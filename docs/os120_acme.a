@@ -5180,7 +5180,7 @@
 .defineTextOrGraphicsColour
     LDA .vdu18ParameterLogicalColour                    ; get last parameter
     BPL +                                               ; if (not negative, it's a foreground colour) then branch
-    INY                                                 ; increment y (to set graphics background colour)
+    INY                                                 ; increment y (to set text/graphics background colour)
 +
     AND .vduNumberOfLogicalColoursMinusOne              ; ensure colour is at most 'number of logical colours less 1'
     STA .vduTempStoreDA                                 ; store it
@@ -10001,11 +10001,13 @@
 ; Check for initialising JIM device
 ;
 ; ***************************************************************************************
-    CLI                                                 ; briefly allow interrupts to clear anything pending
+    CLI                                                 ; briefly allow interrupts (JIM based hardware can cause an
+                                                        ; interrupt here, which will set .interruptAccumulator to $7F,
+                                                        ; according to the comments in the original source code)
     SEI                                                 ; then disallow again (N.B. All VIA IRQs are disabled)
     BIT .interruptAccumulator                           ; check bit 6=1 (keyboard link 2)
     BVC +                                               ; if (keyboard link 2 clear) then branch over next instruction
-    JSR .jimPagedEntryJumper                            ; This calls the JIM paged entry point (to initialise JIM based hardware)
+    JSR .jimPagedEntryJumper                            ; This calls the JIM paged entry point (to initialise JIM based hardware.)
 +
     ; fall through...
 
@@ -10020,7 +10022,9 @@
 ;       A timer interrupt for Speech
 ;       The 100Hz timer
 ;
-; Initialises the 100Hz timer to $270E = 9998 uS (close enough for most purposes to 100Hz)
+; Initialises the 100Hz timer to $270E = 9998 uS (two less than expected because the latch
+; reload costs 2uS)
+;
 ; Initialises other devices to default settings (light pen strobe, printer, user port)
 ;
 ; ***************************************************************************************
@@ -10065,7 +10069,7 @@
 +
     LDA #$27                                            ; set Timer 1 (high byte) to $27.
                                                         ; this sets Timer 1 to $270E (=9998 uS)
-    STA .systemVIATimer1LatchHigh                       ; so interrupt occurs approximately
+    STA .systemVIATimer1LatchHigh                       ; so interrupt occurs
                                                         ; every 100th of a second
     STA .systemVIATimer1CounterHigh                     ; set counter (high byte) which
                                                         ; actually starts the timer
@@ -10323,6 +10327,7 @@
                                                         ; (with carry set)
     JSR .osbyte118EntryPoint                            ; set up keyboard LEDs to reflect
                                                         ; current keyboard status
+                                                        ; also tests for SHIFT pressed
     ; fall through...
 
 ; ***************************************************************************************
@@ -10375,8 +10380,7 @@
     DEC .startupMessageSuppressionAndBootOptions        ; decrement boot options
     JSR .OSCLI                                          ; and execute */!BOOT
     INC .startupMessageSuppressionAndBootOptions        ; restore boot options
-    BNE .checkForFindingLanguageROM                     ; if (not zero) then branch
-    ; fall through...
+    BNE .checkForFindingLanguageROM                     ; ALWAYS branch, don't reset filing system
 
 ; ***************************************************************************************
 ;
@@ -14405,7 +14409,7 @@
     ;
 
     JSR .addByteToBuffer                                ; transfer byte to the sound buffer
-    BCC .markAsUsedAndSendToBuffer                      ; if (C set on exit, i.e. succesful transfer) then branch (send to buffer)
+    BCC .markAsUsedAndSendToBuffer                      ; if (byte successfully added to buffer) then branch (send to buffer)
 .finishUpSound
     PLA                                                 ; }
     PLA                                                 ; } failed to add to buffer, so pull the values off and fall through to exit via OSBYTE 117
@@ -14994,13 +14998,15 @@
 ;   4 - CRTC clock rate select:
 ;         0 = low frequency clock for MODEs 4-7
 ;         1 = high frequency clock for MODEs 0-3
-;   5 - } These two bits determine the width of cursor in bytes
-;   6 - } from this table:
-;        00 = 1 (MODEs 0,3,4,6)
-;        01 = - undefined
-;        10 = 2 (MODEs 1,5,7)
-;        11 = 4 (MODE 2)
-;   7 - Master cursor width. If set, causes a larger cursor to be displayed
+;   5 - }
+;   6 - } These three bits determine the width of cursor in bytes:
+;   7 - }
+;
+;       000 = 0 cursor off
+;       010 = 1 (for MODE 7)
+;       100 = 1 (for MODEs 0,3,4,6)
+;       110 = 2 (for MODEs 1,5)
+;       111 = 4 (for MODE 2)
 ;
 ; ***************************************************************************************
 .osbyte154EntryPoint
@@ -17171,7 +17177,7 @@
     DEX                                                 ; }
     BNE -                                               ; }
 
-    STX .fsReadProgressState                            ; progress flag = 0
+    STX .fsReadProgressState                            ; progress = 0
     LDX #.romServiceCallVectorsClaimed                  ; set X to make a Paged ROM service call 'Vectors Claimed'
                                                         ; used after a new filing system overwrites the current set of vectors.
     ; fall through...
@@ -18498,7 +18504,7 @@
     JSR .resetACIA                                      ; reset ACIA
     LDY #0                                              ; Y=0
 .storeTapeProgress
-    STY .fsReadProgressState                            ; progress flag
+    STY .fsReadProgressState                            ; progress state
 .exit31
     RTS                                                 ;
 
@@ -18717,7 +18723,7 @@
 -
     JSR .checkForEscapeDuringCassetteOperation          ; confirm ESC not set and tape filing system not executing
     LDA #3                                              ; A=3
-    CMP .fsReadProgressState                            ; progress flag
+    CMP .fsReadProgressState                            ; progress state
     BNE -                                               ; back until .fsReadProgressState=3
 
 .startOfBlock
@@ -18915,7 +18921,7 @@
     BEQ +                                               ; if (block length is zero) then branch
     LDX #4                                              ; X=4 (block length not zero)
 +
-    STX .fsReadProgressState                            ; save progress flag
+    STX .fsReadProgressState                            ; save progress state
     RTS                                                 ;
 
 ; ***************************************************************************************
@@ -19919,6 +19925,24 @@
     RTS                                                 ;
 
 ; ***************************************************************************************
+; This routine is actually a bugfix. Commented from the original source code:
+;
+; BUGFIX
+;
+; When the 6850 counter divide bits are reset, it is possible for the SERPROC to get out
+; of synch. for a few bits. This has the effect of corrupting the first character of the
+; first block of a SAVE, or the first character of ANY block during sequential access
+; (since the 6850 is reset for every block during putbytes).
+;
+; The cure is to write a dummy byte to tape at the start of a SAVE, and at the start of
+; every block during putbytes. This must be done by polling, since there must be a period
+; of high-tone after the dummy byte, which is difficult to accomplish if the 6850 is
+; interrupting all the time. BUGFIX is thus called after the SERPROC is set and before the
+; 6850 is set to interrupt during a block write operation.
+;
+; ["SERPROC" refers to .serialULAControlRegister, and "BUGFIX" is this routine]
+;
+; ***************************************************************************************
 .setupForCassetteWrite
     LDA #%10000101                                      ; } switch on the cassette motor and relay
     STA .serialULAControlRegister                       ; } and set 300 baud
@@ -19940,9 +19964,6 @@
 
     LDA #%10101010                                      ; A=$AA
     STA .acia6850DataRegister                           ; send byte to tape
-                                                        ; [Why? Perhaps this is to
-                                                        ;  deliberately break the carrier
-                                                        ;  tone, so we can start afresh?]
 .exit36
     RTS                                                 ;
 
@@ -20038,6 +20059,8 @@
 ;                       Management of all aspects of company network product strategy,
 ;                       product definition, sales forecasting, marketing materials and
 ;                       marketing events.
+;                       Perhaps involved with writing the CFS
+;                       https://stardot.org.uk/forums/viewtopic.php?p=313036#p313036
 ;                       https://www.linkedin.com/in/laurencehardwick/?originalSubdomain=uk
 ;
 ;   Peter Robinson      Video processor custom design with Jeremy Dion;
@@ -20056,7 +20079,9 @@
 ;                       number of companies.
 ;                       https://en.wikipedia.org/wiki/Allen_Boothroyd
 ;
-;   Paul Bond           Led a team of around "30 software developers" that wrote the MOS.
+;   Paul Bond           A contractor from "Top Express", who led a team of around
+;                       "30 software developers" that wrote the MOS 0.1.
+;                       Jon Thackray took over the MOS for 1.0 and later.
 ;                       Also led the software team for the Acorn Communicator.
 ;                       https://stardot.org.uk/forums/viewtopic.php?f=3&t=15786&p=216537&hilit=Paul+Bond#p216537
 ;                       https://sounds.bl.uk/Oral-history/Science/021M-C1379X0078XX-0003V0
@@ -20067,8 +20092,8 @@
 ;                       for the BBC Microcomputer and for server operating systems.
 ;                       https://www.linkedin.com/in/cripps/?originalSubdomain=ca
 ;
-;   Kim Spence-Jones    A consultant for Acorn, worked on the cassette interface software
-;                       with Paul Bond; Formed SJ Research which made Econet peripherals.
+;   Kim Spence-Jones    A consultant for Acorn, worked on the cassette interface hardware;
+;                       worked with Paul Bond; Formed SJ Research which made Econet peripherals.
 ;                       https://youtu.be/GKHEsp8MYTM?t=1108
 ;                       https://stardot.org.uk/forums/viewtopic.php?p=6542#p6542
 ;                       http://www.spencejones.com/Kim_CV_2012.pdf
@@ -20089,19 +20114,24 @@
 ;                       Founded Tadpole technology
 ;                       https://youtu.be/GKHEsp8MYTM?t=1162
 ;
-;   Andrew Gordon       "Andrew Gordon I think was responsible for the ECONET component"
-;                       https://stardot.org.uk/forums/viewtopic.php?f=3&t=1178&p=6326
+;   Andrew Gordon       Worked on the Teletext adapter and contributed to OS features, notably
+;                       the sideways-ROM call interface.
 ;
 ;   Joe Dunn            Engineering Project Management (1980-1988)
-;                       Worked on Econet.
+;                       Worked on Econet. Perhaps worked on the cassette filing system.
 ;                       https://www.linkedin.com/in/joeddunn/
+;                       https://stardot.org.uk/forums/viewtopic.php?p=310032#p310032
 ;
 ;   Arthur Norman       Norcroft C Compiler; Lisp on the BBC Micro; Functional programming;
 ;                       Fellow of Trinity College, Cambridge; Former Director of Studies for
 ;                       Computer Science at Trinity College, Cambridge
+;                       Wrote mathematical routines for BASIC
 ;                       https://en.wikipedia.org/wiki/Arthur_Norman_(computer_scientist)
 ;
-;   Jon Thackray        Co-wrote Acheton (with David Seal and Jonathan Partington)
+;   Jon Thackray        Took over from Paul Bond as leading the MOS development for 1.0 and 1.2.
+;                       Lead the Electron MOS.
+;                       Wrote MASM for the 6502 second processor, and the ARM version.
+;                       Co-wrote Acheton (with David Seal and Jonathan Partington)
 ;                       Wrote early test programs for the ARM
 ;
 ;   Ram Banerjee        (Ramanuj Banerjee)
@@ -20113,14 +20143,35 @@
 ;                       https://dylanharris.org/blog/1981/b1.shtml
 ;                       https://www.linkedin.com/in/devongarde/?originalSubdomain=lu
 ;
-;   John Cox            As a school pupil, as a summer job, wrote tools that helped design the
-;                       Electron ULA; Author of Computer Concepts Snake.
+;   John Cox            In a gap year wrote tools that helped design the Electron ULA;
+;                       Helped to port the System 3 DFS to the BBC Micro.
+;                       Author of Computer Concepts Snake.
 ;                       http://bbcmicro.co.uk/game.php?id=682
 ;                       https://stardot.org.uk/forums/viewtopic.php?f=3&t=13806&p=181329&hilit=John+Cox#p181329
 ;
-;   Brian Jones         Wrote Advanced Graphics with the Acorn Electron;
+;   Brian Jones         Helped to build prototypes of the Electron. Later worked for SJ Research.
+;                       Wrote Advanced Graphics with the Acorn Electron;
 ;                             Advanced Graphics with the BBC Model B Microcomputer
-;                       https://link.springer.com/book/10.1007/978-1-349-07340-5
+;                       https://www.cl.cam.ac.uk/research/dtg/www/people/bdj23/
+;
+;   Graham Tebby        Wrote much of the graphics routines.
+;                       http://abug.org.uk/index.php/2020/09/05/jon-thackray/
+;                       Possibly https://www.linkedin.com/in/graham-tebby-93a7208/?originalSubdomain=uk
+;                       But not really much detail.
+;
+;   Peter Miller        Wrote much of the sound code. Later ran his own company Micro Robotics Ltd
+;                       initially doing BBC add-ons and gradually developing its own range of
+;                       control-oriented micros.
+;
+;   Bob Austin          Lead the motherboard design team, responsible for the PCB layout.
+;                       ("Bob's board" is printed on the motherboard, underneath the
+;                       6502 chip.)
+;                       https://stardot.org.uk/forums/viewtopic.php?p=20687#p20687
+;
+;   Glyn Phillips       Developed the FIT and PET test tools for use in manufacturing/repair of the
+;                       BBC micro.  Later (with Mel Pullen, also ex-Acorn) founded SoftMachinery Ltd
+;                       which (among other things) produced Prestel terminal software to run on the
+;                       BBC.  Also ran the "Gnome at Home" BBS.
 ;
 ;   From the BBC
 ;   ------------
@@ -20136,10 +20187,13 @@
 ;                       https://clp.bbcrewind.co.uk/4412a4e642f6bc04b47f09ec7953a6bf
 ;                       https://clp.bbcrewind.co.uk/aef4287b5161099b147d9c4a75f9c1d3
 ;
-;   John Coll           Primary author of the User Guide ('for which he received £150,000');
+;   John Coll           School teacher who then served on the committee that was selecting the
+;                       manufacturer to produce the BBC Micro.
+;                       Primary author of the User Guide ('for which he received £150,000');
 ;                       wrote initial functional description of the BBC Micro; wrote for
 ;                       Personal Computer World; Worked on the Micro Live programme.
-;                       Ended up working for Acorn as an employee.
+;                       Ended up working for Acorn as an employee, later moving to CET
+;                       (Council for Educational Technology).
 ;                       https://en.wikipedia.org/wiki/John_Coll
 ;                       https://clp.bbcrewind.co.uk/4412a4e642f6bc04b47f09ec7953a6bf
 ;
@@ -20171,10 +20225,10 @@
 ;   6502 designers      Chuck Peddle, Rod Orgill, and Wil Mathys
 ;                       https://en.wikipedia.org/wiki/MOS_Technology_6502#Design_notes
 ;
-;   Hitachi             supplied DRAM chips
+;   Hitachi             Supplied DRAM chips
 ;                       https://youtu.be/GKHEsp8MYTM?t=1816
 ;
-;   Ferranti            made the custom ULAs for Acorn
+;   Ferranti            Made the custom ULAs for Acorn
 ;
 ;   ICL and Cleartone   Manufacturers
 ;                       According to Acorn User issue 1 - July/Aug 1982: "Acorn currently
@@ -20191,24 +20245,15 @@
 ;   Computer Laboratory Academic department within the University of Cambridge
 ;                       https://www.cl.cam.ac.uk
 ;
-;   Wilberforce Road    A road in Cambridge. The maths building wasn't there back in the day,
-;                       so possibly listed for its sports facilities?
+;   Wilberforce Road    A road in Cambridge where some of the developers lived in the early days.
+;                       https://youtu.be/Rphep1dS2NU?t=2191
 ;                       https://map.cam.ac.uk/Wilberforce+Road#52.209604,0.100091,17
 ;
 ;   Unknown
 ;   -------
-;   Bob Austin          Speculatively could have been part of the motherboard design team
-;                       since "Bob's board" is printed on the motherboard, underneath the
-;                       6502 chip.
-;                       https://stardot.org.uk/forums/viewtopic.php?p=20687#p20687
 ;   Paul Farrell
 ;   Jon Gibbons
-;   Lawrence Hardwick
-;   Peter Miller
-;   Glyn Phillips
 ;   Mike Prees
-;   Graham Tebby        Possibly https://www.linkedin.com/in/graham-tebby-93a7208/?originalSubdomain=uk
-;                       But not really much detail.
 ;   Adrian Warner
 ;   Alan Wright
 
@@ -20408,10 +20453,13 @@
 
 ; ***************************************************************************************
 ;
-; Unused default vector table pointer
+; Default vector table pointer
 ;
-; This may have been intended for user programs to be able to read the default handler
-; addresses, but is not documented, and is not used by the ROM. New in MOS 1.20.
+; User programs can read these locations to find the default handler addresses.
+; It is not well documented (it's not in the NAUG), but it does appear in the Electron
+; Advanced User Guide section 6.11. It is not used by this ROM. New in MOS 1.20.
+;
+; The original source code has the cryptic comment "security copy of indirection data"
 ;
 ; ***************************************************************************************
     !byte .defaultVectorTableEnd - .defaultVectorTable  ; length of table         [unused]
@@ -20704,10 +20752,10 @@
 ; OSBYTE 212 - Amplitude or Envelope for BELL               See .soundBELLAmplitudeEnvelope
 ; OSBYTE 213 - Pitch for BELL                               See .soundBELLPitch
 ; OSBYTE 214 - Duration for BELL                            See .soundBELLDuration
-; OSBYTE 215 - Startup options                            See .startupMessageSuppressionAndBootOptions
+; OSBYTE 215 - Startup options                              See .startupMessageSuppressionAndBootOptions
 ; OSBYTE 216 - Length of *KEY string being decoded          See .softKeyStringLength
 ; OSBYTE 217 - Paged mode line count                        See .pagedModeCounter
-; OSBYTE 218 - Bytes in VDU queue                         See .twosComplimentOfNumberOfBytesInVDUQueue
+; OSBYTE 218 - Bytes in VDU queue                           See .twosComplimentOfNumberOfBytesInVDUQueue
 ; OSBYTE 219 - ASCII code to produce when TAB pressed       See .asciiCodeGeneratedByTABKey
 ; OSBYTE 220 - ASCII code that generates ESCAPE condition   See .asciiCodeThatGeneratesESCAPEAction
 ; OSBYTE 221-228 - How to interpret special keys            See .functionAndCursorKeyCodes
