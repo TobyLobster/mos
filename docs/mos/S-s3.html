@@ -496,14 +496,14 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax"> bit 1:    PB latch enable</span>
 <span class="ACME-plain-syntax"> bits 2-4: Shift register mode</span>
 <span class="ACME-plain-syntax"> bit 5:    Timer 2 mode: 0=One-shot mode; 1=Pulse counting mode.</span>
-<span class="ACME-plain-syntax"> bit 6:    Enable pulsing of System VIA output pin PB7. When enabled, Timer 1 will set</span>
-<span class="ACME-plain-syntax">           PB7 as follows:</span>
+<span class="ACME-plain-syntax"> bit 6:    Timer 1 mode: 0=One shot mode; 1=Free-run mode.</span>
+<span class="ACME-plain-syntax"> bit 7:    Enable pulsing of System VIA output pin PB7.</span>
+<span class="ACME-plain-syntax">           When enabled, Timer 1 will set PB7 as follows:</span>
 <span class="ACME-plain-syntax">           In One-shot mode:</span>
 <span class="ACME-plain-syntax">               PB7 is cleared when Timer 1 started,</span>
 <span class="ACME-plain-syntax">               PB7 is set when Timer 1 one-shot mode times out.</span>
 <span class="ACME-plain-syntax">           In Free-run mode:</span>
 <span class="ACME-plain-syntax">               PB7 is inverted when Timer 1 times out.</span>
-<span class="ACME-plain-syntax"> bit 7:    Timer 1 mode: 0=One shot mode; 1=Free-run mode.</span>
 
 <span class="ACME-plain-syntax"> In the reset code (see .</span><a href="S-s10.html#SP8" class="internal">setUpPage2</a><span class="ACME-plain-syntax">) this register is initialised to:</span>
 
@@ -559,7 +559,7 @@ function togglePopup(material_id) {
 <p class="commentary firstcommentary"><a id="SP19" class="paragraph-anchor"></a><b>&#167;19. System VIA, Interrupt Flag Register ($FE4D) (aka 'IFR'). </b></p>
 
 <pre class="ACME-undisplayed-code all-displayed-code code-font">
-<span class="ACME-plain-syntax">   bit 0 = key pressed interrupt</span>
+<span class="ACME-plain-syntax">   bit 0 = key pressed</span>
 <span class="ACME-plain-syntax">   bit 1 = vertical sync occurred</span>
 <span class="ACME-plain-syntax">   bit 2 = shift register timeout (unused)</span>
 <span class="ACME-plain-syntax">   bit 3 = lightpen strobe off screen</span>
@@ -587,7 +587,7 @@ function togglePopup(material_id) {
 <pre class="ACME-undisplayed-code all-displayed-code code-font">
 <span class="ACME-plain-syntax"> Each bit controls whether an interrupt is enabled or disabled.</span>
 
-<span class="ACME-plain-syntax"> bit 0 = key pressed interrupt</span>
+<span class="ACME-plain-syntax"> bit 0 = key pressed</span>
 <span class="ACME-plain-syntax"> bit 1 = vertical sync occurred</span>
 <span class="ACME-plain-syntax"> bit 2 = shift register timeout (unused)</span>
 <span class="ACME-plain-syntax"> bit 3 = light pen strobe off screen</span>
@@ -598,8 +598,8 @@ function togglePopup(material_id) {
 
 <span class="ACME-plain-syntax"> Writing:</span>
 <span class="ACME-plain-syntax"> --------</span>
-<span class="ACME-plain-syntax"> To enable  an interrupt, write a byte with the top bit set   and set the desired bit(s) (0-6).</span>
-<span class="ACME-plain-syntax"> To disable an interrupt, write a byte with the top bit clear and set the desired bit(s) (0-6).</span>
+<span class="ACME-plain-syntax"> To enable  an interrupt, write a byte with bit 7 set   and set the desired bit(s) (0-6).</span>
+<span class="ACME-plain-syntax"> To disable an interrupt, write a byte with bit 7 clear and set the desired bit(s) (0-6).</span>
 
 <span class="ACME-plain-syntax"> Reading:</span>
 <span class="ACME-plain-syntax"> --------</span>
@@ -667,12 +667,20 @@ function togglePopup(material_id) {
 <p class="commentary firstcommentary"><a id="SP23" class="paragraph-anchor"></a><b>&#167;23. User VIA, interrupt flag register ($FE6D). </b></p>
 
 <pre class="ACME-undisplayed-code all-displayed-code code-font">
+<span class="ACME-plain-syntax"> bit 1 = printer interrupt</span>
+<span class="ACME-plain-syntax"> bit 5 = timer 2 timed out interrupt</span>
+<span class="ACME-plain-syntax"> bit 6 = timer 1 timed out interrupt</span>
+
 <span class="ACME-plain-syntax"> Writing:</span>
-<span class="ACME-plain-syntax"> To clear printer interrupts, clear bit 7 and set bit 1</span>
+<span class="ACME-plain-syntax"> Clear bit 7 to clear each of the interrupts indicated by the other set bits.</span>
+<span class="ACME-plain-syntax"> Or set bit 7 to raise each of the interrupts.</span>
+<span class="ACME-plain-syntax">   e.g. To clear a printer interrupt, clear bit 7 and set bit 1</span>
 
 <span class="ACME-plain-syntax"> Reading:</span>
-<span class="ACME-plain-syntax"> bit 7 set means the current interrupt is from the User VIA</span>
 <span class="ACME-plain-syntax"> bit 1 set signifies a parallel printer interrupt.</span>
+<span class="ACME-plain-syntax"> bit 5 set signifies timer 2 timed out</span>
+<span class="ACME-plain-syntax"> bit 6 set signifies timer 1 timed out</span>
+<span class="ACME-plain-syntax"> bit 7 set means the current interrupt is from the User VIA</span>
 <span class="ACME-plain-syntax"> (See .</span><a href="S-s11.html#SP14" class="internal">irq1CheckUserVIA</a><span class="ACME-plain-syntax">)</span>
 </pre>
 <pre class="ACME-displayed-code all-displayed-code code-font">
@@ -681,13 +689,19 @@ function togglePopup(material_id) {
 <p class="commentary firstcommentary"><a id="SP24" class="paragraph-anchor"></a><b>&#167;24. User VIA, interrupt enable register ($FE6E). </b></p>
 
 <pre class="ACME-undisplayed-code all-displayed-code code-font">
+<span class="ACME-plain-syntax"> bit 1 = printer interrupt</span>
+<span class="ACME-plain-syntax"> bit 5 = timer 2 timed out interrupt</span>
+<span class="ACME-plain-syntax"> bit 6 = timer 1 timed out interrupt</span>
+
 <span class="ACME-plain-syntax"> Writing:</span>
-<span class="ACME-plain-syntax"> To disable printer interrupts, clear bit 7 and set bit 1</span>
-<span class="ACME-plain-syntax"> To  enable printer interrupts,   set bit 7 and set bit 1</span>
+<span class="ACME-plain-syntax"> Clear bit 7 to disable each of the interrupts indicated by the other set bits.</span>
+<span class="ACME-plain-syntax"> Or set bit 7 to enable each of the interrupts.</span>
+
+<span class="ACME-plain-syntax"> e.g. To disable printer interrupts, clear bit 7 and set bit 1</span>
+<span class="ACME-plain-syntax">      To  enable printer interrupts,   set bit 7 and set bit 1</span>
 
 <span class="ACME-plain-syntax"> Reading:</span>
-<span class="ACME-plain-syntax"> bit 1 set signifies the printer interrupt is enabled.</span>
-<span class="ACME-plain-syntax"> bit 7 is always set when reading.</span>
+<span class="ACME-plain-syntax"> bit 7 is always read as set when reading.</span>
 <span class="ACME-plain-syntax"> (See .</span><a href="S-s11.html#SP14" class="internal">irq1CheckUserVIA</a><span class="ACME-plain-syntax">)</span>
 </pre>
 <pre class="ACME-displayed-code all-displayed-code code-font">

@@ -2494,14 +2494,14 @@
 ; bit 1:    PB latch enable
 ; bits 2-4: Shift register mode
 ; bit 5:    Timer 2 mode: 0=One-shot mode; 1=Pulse counting mode.
-; bit 6:    Enable pulsing of System VIA output pin PB7. When enabled, Timer 1 will set
-;           PB7 as follows:
+; bit 6:    Timer 1 mode: 0=One shot mode; 1=Free-run mode.
+; bit 7:    Enable pulsing of System VIA output pin PB7.
+;           When enabled, Timer 1 will set PB7 as follows:
 ;           In One-shot mode:
 ;               PB7 is cleared when Timer 1 started,
 ;               PB7 is set when Timer 1 one-shot mode times out.
 ;           In Free-run mode:
 ;               PB7 is inverted when Timer 1 times out.
-; bit 7:    Timer 1 mode: 0=One shot mode; 1=Free-run mode.
 ;
 ; In the reset code (see .setUpPage2) this register is initialised to:
 ;
@@ -2558,7 +2558,7 @@
 ;
 ; System VIA, Interrupt Flag Register ($FE4D) (aka 'IFR')
 ;
-;   bit 0 = key pressed interrupt
+;   bit 0 = key pressed
 ;   bit 1 = vertical sync occurred
 ;   bit 2 = shift register timeout (unused)
 ;   bit 3 = lightpen strobe off screen
@@ -2587,7 +2587,7 @@
 ;
 ; Each bit controls whether an interrupt is enabled or disabled.
 ;
-; bit 0 = key pressed interrupt
+; bit 0 = key pressed
 ; bit 1 = vertical sync occurred
 ; bit 2 = shift register timeout (unused)
 ; bit 3 = light pen strobe off screen
@@ -2598,8 +2598,8 @@
 ;
 ; Writing:
 ; --------
-; To enable  an interrupt, write a byte with the top bit set   and set the desired bit(s) (0-6).
-; To disable an interrupt, write a byte with the top bit clear and set the desired bit(s) (0-6).
+; To enable  an interrupt, write a byte with bit 7 set   and set the desired bit(s) (0-6).
+; To disable an interrupt, write a byte with bit 7 clear and set the desired bit(s) (0-6).
 ;
 ; Reading:
 ; --------
@@ -2668,12 +2668,20 @@
 ;
 ; User VIA, interrupt flag register ($FE6D)
 ;
+; bit 1 = printer interrupt
+; bit 5 = timer 2 timed out interrupt
+; bit 6 = timer 1 timed out interrupt
+;
 ; Writing:
-; To clear printer interrupts, clear bit 7 and set bit 1
+; Clear bit 7 to clear each of the interrupts indicated by the other set bits.
+; Or set bit 7 to raise each of the interrupts.
+;   e.g. To clear a printer interrupt, clear bit 7 and set bit 1
 ;
 ; Reading:
-; bit 7 set means the current interrupt is from the User VIA
 ; bit 1 set signifies a parallel printer interrupt.
+; bit 5 set signifies timer 2 timed out
+; bit 6 set signifies timer 1 timed out
+; bit 7 set means the current interrupt is from the User VIA
 ; (See .irq1CheckUserVIA)
 ;
 ; ***************************************************************************************
@@ -2683,13 +2691,19 @@
 ;
 ; User VIA, interrupt enable register ($FE6E)
 ;
+; bit 1 = printer interrupt
+; bit 5 = timer 2 timed out interrupt
+; bit 6 = timer 1 timed out interrupt
+;
 ; Writing:
-; To disable printer interrupts, clear bit 7 and set bit 1
-; To  enable printer interrupts,   set bit 7 and set bit 1
+; Clear bit 7 to disable each of the interrupts indicated by the other set bits.
+; Or set bit 7 to enable each of the interrupts.
+;
+; e.g. To disable printer interrupts, clear bit 7 and set bit 1
+;      To  enable printer interrupts,   set bit 7 and set bit 1
 ;
 ; Reading:
-; bit 1 set signifies the printer interrupt is enabled.
-; bit 7 is always set when reading.
+; bit 7 is always read as set when reading.
 ; (See .irq1CheckUserVIA)
 ; ***************************************************************************************
 .userVIAInterruptEnableRegister             = $FE6E     ; Interrupt enable register
@@ -10005,8 +10019,8 @@
                                                         ; interrupt here, which will set .interruptAccumulator to $7F,
                                                         ; according to the comments in the original source code)
     SEI                                                 ; then disallow again (N.B. All VIA IRQs are disabled)
-    BIT .interruptAccumulator                           ; check bit 6=1 (keyboard link 2)
-    BVC +                                               ; if (keyboard link 2 clear) then branch over next instruction
+    BIT .interruptAccumulator                           ; if bit six is set, then we have JIM hardware to initialize.
+    BVC +                                               ; if (bit six clear) then branch over next instruction
     JSR .jimPagedEntryJumper                            ; This calls the JIM paged entry point (to initialise JIM based hardware.)
 +
     ; fall through...
@@ -13384,7 +13398,7 @@
 ;
 ; ***************************************************************************************
 .osbyteAndOSWORDRoutineTable
-    !word .osbyte0EntryPoint        ; OSBYTE   0 - Display version number
+    !word .osbyte0EntryPoint        ; OSBYTE   0 - Generate error message/return version number
     !word .osbyte1EntryPoint        ; OSBYTE   1 - Read/Write user flag
     !word .osbyte2EntryPoint        ; OSBYTE   2 - select input stream
     !word .osbyte3EntryPoint        ; OSBYTE   3 - Select output stream
@@ -14171,19 +14185,20 @@
 
 ; ***************************************************************************************
 ;
-; OSBYTE 0 - Display version number
+; OSBYTE 0 - Generate error message containing OS version information, or return OS version
 ;
 ; See fx0.png
-; Shows which version of the OS is installed. [Oddly this is implemented as an error message
-; via the BRK mechanism. When running BASIC, BASIC's BRK handler is executed and so we have
-; an extra newline and the last error number is set to 247. An alternative would have been
-; to use the same printing method as used in *HELP (see .starHelp). Indeed earlier versions
-; of the OS did just that.]
+; If X is zero on entry, this generates an error message containing the OS version.
+; Control is passed to the current BRK handler which by convention will print the error
+; message and return control back to the current language. The calling program will not
+; continue.
+;
+; If X is non-zero on entry, the OS version number is returned in X.
 ;
 ; ***************************************************************************************
 .osbyte0EntryPoint
     BNE .exitWithX1                                     ; if (X is not zero) then branch (exit with X = 1 meaning OS 1.20)
-    BRK                                                 ; print error message
+    BRK                                                 ; generate error message
     !byte $F7                                           ; error number
     !text "OS 1.20",0                                   ; error string with zero terminator
 
@@ -14471,7 +14486,7 @@
 
     ; The stack now holds the two bytes of the SOUND command that normally specify amplitude
     ; These are the last two of three bytes we are going to add to the buffer. The first
-    ; byte is byte 0 from the
+    ; byte we add to the buffer is byte 0 from the sound command
 
     LDY #0                                              ; Y=0
     LDA (.oswordX),Y                                    ; get byte
@@ -16976,6 +16991,10 @@
 ; check each row in that column to check which specific key is pressed
 ; (see .loopKeyboardRows).
 ;
+; When scanning the entire keyboard, the first row (including SHIFT and CTRL) are not
+; reported since these keys do not generate interrupts. They can instead be tested
+; individually (X negative on entry).
+;
 ; For the keyboard circuit diagram, See Chapter 25.
 ;
 ; On Entry:
@@ -17046,7 +17065,7 @@
     ; goto next column
 .tryNextKeyboardColumn
     DEX                                                 ; decrement X
-    BPL .loopKeyboardColumns                            ; scan again if greater than 0
+    BPL .loopKeyboardColumns                            ; scan again if column >= 0
     TXA                                                 ;
 .finishKeyboardScanning
     TAX                                                 ;
@@ -17060,7 +17079,7 @@
 .enableKeyboardScanning
     LDA #11                                             ; }
     STA .systemVIARegisterB                             ; } enable auto scan of keyboard
-    TXA                                                 ; Set X = 11
+    TXA                                                 ;
     RTS                                                 ;
 
 ; ***************************************************************************************
@@ -20055,7 +20074,7 @@
 ;                       Awarded the CBE in 2019.
 ;                       https://en.wikipedia.org/wiki/Sophie_Wilson
 ;
-;   Laurence Hardwick   Network Product Manager (1980-1990)
+;   Laurence Hardwick   Network Product Manager (1980 - 1990)
 ;                       Management of all aspects of company network product strategy,
 ;                       product definition, sales forecasting, marketing materials and
 ;                       marketing events.
@@ -20087,7 +20106,7 @@
 ;                       https://sounds.bl.uk/Oral-history/Science/021M-C1379X0078XX-0003V0
 ;                       https://en.wikipedia.org/wiki/Acorn_Communicator
 ;
-;   Andrew Cripps       Software Engineer (1981–1983)
+;   Andrew Cripps       Software Engineer (1981 – 1983)
 ;                       Developed operating system software, drivers and supporting utilities
 ;                       for the BBC Microcomputer and for server operating systems.
 ;                       https://www.linkedin.com/in/cripps/?originalSubdomain=ca
@@ -20117,7 +20136,7 @@
 ;   Andrew Gordon       Worked on the Teletext adapter and contributed to OS features, notably
 ;                       the sideways-ROM call interface.
 ;
-;   Joe Dunn            Engineering Project Management (1980-1988)
+;   Joe Dunn            Engineering Project Management (1980 - 1988)
 ;                       Worked on Econet. Perhaps worked on the cassette filing system.
 ;                       https://www.linkedin.com/in/joeddunn/
 ;                       https://stardot.org.uk/forums/viewtopic.php?p=310032#p310032
@@ -20138,7 +20157,7 @@
 ;                       Wire wrapped the prototype machine to show the BBC.
 ;                       https://youtu.be/GKHEsp8MYTM?t=1895
 ;
-;   Dylan Harris        Programmer (Jul 1981–Sep 1981)
+;   Dylan Harris        Programmer (Jul 1981 - Sep 1981)
 ;                       As a summer job helped finish a 6502 Assembler, used to build the MOS.
 ;                       https://dylanharris.org/blog/1981/b1.shtml
 ;                       https://www.linkedin.com/in/devongarde/?originalSubdomain=lu
@@ -20159,11 +20178,18 @@
 ;                       Possibly https://www.linkedin.com/in/graham-tebby-93a7208/?originalSubdomain=uk
 ;                       But not really much detail.
 ;
-;   Peter Miller        Wrote much of the sound code. Later ran his own company Micro Robotics Ltd
-;                       initially doing BBC add-ons and gradually developing its own range of
-;                       control-oriented micros.
+;   Peter Miller        Wrote much of the sound code. Later ran his own company Micro Robotics Ltd.
+;                       Won an Academy Award at the 1991 Oscars for working on animation
+;                       control technology for the Jim Henson Organisation.
+;                       Developed a control system for entertainment laser displays, used
+;                       at Seoul Olympics in 1988.
+;                       Won a Queen’s Award for Innovation in 2003 for intelligent traffic
+;                       light control systems.
+;                       Worked for ARM Ltd on the simulation and testing for new embedded
+;                       computer devices prior to fabrication.
+;                       https://petereastern.com
 ;
-;   Bob Austin          Lead the motherboard design team, responsible for the PCB layout.
+;   Bob Austin          Led the motherboard design team, responsible for the PCB layout.
 ;                       ("Bob's board" is printed on the motherboard, underneath the
 ;                       6502 chip.)
 ;                       https://stardot.org.uk/forums/viewtopic.php?p=20687#p20687
@@ -20628,7 +20654,7 @@
 ;
 ; See .osbyteEntryPoint
 ;
-; OSBYTE   0 - Display version number                       See .osbyte0EntryPoint
+; OSBYTE   0 - Generate error message/return version number See .osbyte0EntryPoint
 ; OSBYTE   1 - Read/Write user flag                         See .osbyte1EntryPoint
 ; OSBYTE   2 - select input stream                          See .osbyte2EntryPoint
 ; OSBYTE   3 - Select output stream                         See .osbyte3EntryPoint

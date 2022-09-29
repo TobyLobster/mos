@@ -740,6 +740,10 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax"> check each row in that column to check which specific key is pressed</span>
 <span class="ACME-plain-syntax"> (see .</span><a href="S-s17.html#SP34" class="internal">loopKeyboardRows</a><span class="ACME-plain-syntax">).</span>
 
+<span class="ACME-plain-syntax"> When scanning the entire keyboard, the first row (including SHIFT and CTRL) are not</span>
+<span class="ACME-plain-syntax"> reported since these keys do not generate interrupts. They can instead be tested</span>
+<span class="ACME-plain-syntax"> individually (X negative on entry).</span>
+
 <span class="ACME-plain-syntax"> For the keyboard circuit diagram, See </span><a href="S-s25.html" class="internal">Chapter 25: Appendix</a><span class="ACME-plain-syntax">.</span>
 
 <span class="ACME-plain-syntax"> On Entry:</span>
@@ -837,7 +841,7 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax">    </span><span class="ACME-comment-syntax">goto next column</span>
 <span class="ACME-plain-syntax">.</span><span class="ACME-function-syntax">tryNextKeyboardColumn</span><span class="ACME-plain-syntax"> </span><span class="ACME-comment-syntax">= $f123</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">DEX</span><span class="ACME-plain-syntax">                                                 </span><span class="ACME-comment-syntax">decrement X</span>
-<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">BPL</span><span class="ACME-plain-syntax"> .</span><a href="S-s17.html#SP34" class="function-link"><span class="ACME-function-syntax">loopKeyboardColumns</span></a><span class="ACME-plain-syntax">                            </span><span class="ACME-comment-syntax">scan again if greater than 0</span>
+<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">BPL</span><span class="ACME-plain-syntax"> .</span><a href="S-s17.html#SP34" class="function-link"><span class="ACME-function-syntax">loopKeyboardColumns</span></a><span class="ACME-plain-syntax">                            </span><span class="ACME-comment-syntax">scan again if column &gt;= 0</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">TXA</span><span class="ACME-plain-syntax">                                                 </span>
 <span class="ACME-plain-syntax">.</span><span class="ACME-function-syntax">finishKeyboardScanning</span><span class="ACME-plain-syntax"> </span><span class="ACME-comment-syntax">= $f127</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">TAX</span><span class="ACME-plain-syntax">                                                 </span>
@@ -851,7 +855,7 @@ function togglePopup(material_id) {
 <span class="ACME-plain-syntax">.</span><span class="ACME-function-syntax">enableKeyboardScanning</span><button class="popup" onclick="togglePopup('usagePopup45')"><span class="ACME-comment-syntax">?</span><span class="popuptext" id="usagePopup45">Usage of <span class="code-font"><span class="ACME-function-syntax">enableKeyboardScanning</span></span>:<br/><a href="S-s17.html#SP2">&#167;2</a></span></button><span class="ACME-plain-syntax"> </span><span class="ACME-comment-syntax">= $f12e</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">LDA</span><span class="ACME-plain-syntax"> #11                                             </span><span class="ACME-comment-syntax">}</span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">STA</span><span class="ACME-plain-syntax"> .</span><a href="S-s3.html#SP10" class="function-link"><span class="ACME-function-syntax">systemVIARegisterB</span></a><span class="ACME-plain-syntax">                             </span><span class="ACME-comment-syntax">} enable auto scan of keyboard</span>
-<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">TXA</span><span class="ACME-plain-syntax">                                                 </span><span class="ACME-comment-syntax">Set X = 11</span>
+<span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">TXA</span><span class="ACME-plain-syntax">                                                 </span>
 <span class="ACME-plain-syntax">    </span><span class="ACME-reserved-syntax">RTS</span><span class="ACME-plain-syntax">                                                 </span>
 </pre>
 <nav role="progress"><div class="progresscontainer">
